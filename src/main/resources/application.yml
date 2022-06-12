@@ -1,0 +1,68 @@
+server:
+  port: 8080
+
+spring:
+  mvc:
+    static-path-pattern: static/**
+  freemarker:
+    template-loader-path: classpath:templates
+    cache: false
+    charset: UTF-8
+    check-template-location: true
+    content-type: text/html
+    expose-request-attributes: false
+    expose-session-attributes: false
+    request-context-attribute: request
+    suffix: .html
+  devtools:
+    restart:
+      enabled: true  #设置开启热部署
+  application:
+    name: car-rental
+  h2:
+    console:
+      path: /h2-console
+      enabled: true
+      settings:
+        web-allow-others: true
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: org.h2.Driver
+    #h2 内存数据库 持久化模式连接配置 库名: myDb
+    #url: jdbc:h2:~/test:myDb;MODE=MySQL;DATABASE_TO_LOWER=TRUE;USER=sa
+    #h2 内存数据库 内存模式连接配置 库名: myDb
+    url: jdbc:h2:mem:myDb;MODE=MySQL;DATABASE_TO_LOWER=TRUE;USER=sa
+    druid:
+      initial-size: 10
+      max-active: 200
+      min-idle: 10
+      max-wait: 60000 #获取连接等待超时的时间
+      pool-prepared-statements: false
+      max-pool-prepared-statement-per-connection-size: 20
+      max-open-prepared-statements: 20
+      validation-query: SELECT 'x'
+      validation-query-timeout: 2000
+      test-on-borrow: false
+      test-on-return: false
+      test-while-idle: true
+      time-between-eviction-runs-millis: 60000  #间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+      min-evictable-idle-time-millis: 300000  #连接在池中最小生存的时间，单位是毫秒
+      filters: stat              #监控统计拦截的filters
+  sql:
+    init:
+      schema-locations: classpath:sql/init.sql
+      data-locations: classpath:sql/data.sql
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  global-config:
+    db-config:
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      table-underline: true
+  configuration:
+    map-underscore-to-camel-case: true
+    auto-mapping-unknown-column-behavior: WARNING
+    call-setters-on-nulls: false
+    cache-enabled: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

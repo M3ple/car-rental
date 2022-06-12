@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.car.dao.mapper.OrderMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.car.entity.Order">
+        <result column="id" property="id"/>
+        <result column="uid" property="uid"/>
+        <result column="car_id" property="carId"/>
+        <result column="gmt_start" property="gmtStart"/>
+        <result column="gmt_end" property="gmtEnd"/>
+        <result column="order_status" property="orderStatus"/>
+        <result column="status" property="status"/>
+        <result column="gmt_create" property="gmtCreate"/>
+        <result column="gmt_modify" property="gmtModify"/>
+    </resultMap>
+
+    <select id="queryInUse" resultMap="BaseResultMap">
+        select * from car_order where
+        status = 1
+        <if test="carId != '' and carId != null">
+            and car_id = #{carId}
+        </if>
+        and order_status = 1 and
+        (
+            (gmt_start &lt; #{gmtStart} and gmt_end &gt; #{gmtStart}) or
+            (gmt_start &lt; #{gmtEnd} and gmt_end &gt; #{gmtEnd}) or
+            (gmt_start &gt;= #{gmtStart} and gmt_end &lt;= #{gmtEnd})
+        )
+    </select>
+</mapper>

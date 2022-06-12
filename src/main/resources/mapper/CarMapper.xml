@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.car.dao.mapper.CarMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.car.entity.Car">
+        <result column="id" property="id"/>
+        <result column="type" property="type"/>
+        <result column="status" property="status"/>
+        <result column="gmt_create" property="gmtCreate"/>
+        <result column="gmt_modify" property="gmtModify"/>
+    </resultMap>
+
+    <select id="listCars" resultMap="BaseResultMap">
+        select * from car where
+        status = 1
+        <if test="carIds != null and carIds.size >0">
+            and id in (
+            <foreach collection="carIds" separator="," item="carId">
+                #{carId}
+            </foreach>
+            )
+        </if>
+        <if test="carIdExclude != null and carIdExclude.size >0">
+            and id not in (
+            <foreach collection="carIdExclude" separator="," item="carId">
+                #{carId}
+            </foreach>
+            )
+        </if>
+        <if test="type != null and type != -1">
+            and `type` = #{type}
+        </if>
+    </select>
+</mapper>
