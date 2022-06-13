@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * TODO 类描述，创建后请修改。
+ * exception enum
  *
  * @author Gandalf
  * @since 2022-06-11 01:58
@@ -26,6 +26,12 @@ public enum ExceptionEnum {
     CAR_NOT_EXISTS("10003", "car not exists"),
 
     ORDER_NOT_EXISTS("10004", "order not exists"),
+
+    USER_ALREADY_EXISTS("10005", "user already exists"),
+
+    USERNAME_OR_PASSWORD_NOT_CORRECT("10006", "username or password not correct"),
+
+    PLEASE_LOG_IN("10007", "please log in"),
     ;
 
     private String code;

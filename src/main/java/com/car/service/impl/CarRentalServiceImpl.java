@@ -1,7 +1,7 @@
 package com.car.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.car.controller.request.BookCarRequest;
+import com.car.config.request.BookCarRequest;
 import com.car.dao.CarDAO;
 import com.car.dao.OrderDAO;
 import com.car.entity.Car;
@@ -10,8 +10,7 @@ import com.car.entity.enums.ExceptionEnum;
 import com.car.entity.enums.OrderStatusEnum;
 import com.car.entity.exception.BaseException;
 import com.car.service.CarRentalService;
-import com.car.utils.Assert;
-import com.car.utils.IdWorker;
+import com.car.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -44,41 +43,47 @@ public class CarRentalServiceImpl implements CarRentalService {
     private ScheduledExecutorService scheduler;
     @Resource
     private IdWorker idWorker;
+    @Resource
+    private MailUtil mailUtil;
 
     @Override
     public void bookCar(BookCarRequest request, Long carId) {
-        Assert.isTrue(request.getGmtStart() < request.getGmtEnd(), ExceptionEnum.PARAM_ILLEGAL);
-        Assert.isTrue(request.getGmtEnd() > System.currentTimeMillis(), ExceptionEnum.PARAM_ILLEGAL);
+        Long gmtStart = DateUtil.convertTimeToLong(request.getGmtStart());
+        Long gmtEnd = DateUtil.convertTimeToLong(request.getGmtEnd());
+        Assert.isTrue(gmtStart < gmtEnd, ExceptionEnum.PARAM_ILLEGAL);
+        Assert.isTrue(gmtEnd > System.currentTimeMillis(), ExceptionEnum.PARAM_ILLEGAL);
 
         Car car = carDAO.getById(carId);
         Assert.notNull(car, ExceptionEnum.CAR_NOT_EXISTS);
 
-        // TODO: Gandalf 2022/6/12 锁粒度
-        synchronized (this) {
-            List<Order> ordersInUs = orderDAO.getInUse(carId, request.getGmtStart(), request.getGmtEnd());
-            Assert.empty(ordersInUs, ExceptionEnum.CAR_IS_SERVING);
-            try {
-                transactionTemplate.execute(status -> {
-                    Order order = Order.builder()
-                            .id(idWorker.nextId())
-                            .uid(request.getUid())
-                            .carId(carId)
-                            .orderStatus(OrderStatusEnum.VALID.getStatus())
-                            .gmtStart(request.getGmtStart())
-                            .gmtEnd(request.getGmtEnd())
-                            .build();
-                    orderDAO.createOrder(order);
+        List<Order> ordersInUs = orderDAO.getInUse(carId, gmtStart, gmtEnd);
+        Assert.empty(ordersInUs, ExceptionEnum.CAR_IS_SERVING);
+        try {
+            transactionTemplate.execute(status -> {
+                Order order = Order.builder()
+                        .id(idWorker.nextId())
+                        .uid(UserUtil.getUid())
+                        .carId(carId)
+                        .orderStatus(OrderStatusEnum.VALID.getStatus())
+                        .gmtStart(gmtStart)
+                        .gmtEnd(gmtEnd)
+                        .build();
+                orderDAO.createOrder(order);
 
-                    scheduler.schedule(() -> {
-                        // start a delay job to check order status
-                        finishOrder(order);
-                    }, request.getGmtEnd() - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
-                    return true;
-                });
-            } catch (Exception e) {
-                log.error("fail to book car, carId:{}", carId, e);
-                throw new BaseException(ExceptionEnum.SYSTEM_ERROR);
-            }
+                scheduler.schedule(() -> {
+                    // start a delay job to check order status
+                    finishOrder(order);
+                }, gmtEnd - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+                return true;
+            });
+        } catch (Exception e) {
+            log.error("fail to book car, carId:{}", carId, e);
+            throw new BaseException(ExceptionEnum.SYSTEM_ERROR);
+        }
+        try {
+            mailUtil.sendSimpleMail(UserUtil.getUid(), "Car Rental", "book a new car successfully!");
+        } catch (Exception e) {
+            log.warn("fail to send email");
         }
     }
 
@@ -105,6 +110,11 @@ public class CarRentalServiceImpl implements CarRentalService {
             } catch (Exception e) {
                 log.error("fail to finish order:{}", JSONObject.toJSON(order), e);
             }
+            try {
+                mailUtil.sendSimpleMail(order.getUid(), "Car Rental Finished", "a car rental order(" + order.getId() + ") has been finished!");
+            } catch (Exception e) {
+                log.warn("fail to send email");
+            }
         }
     }
 
@@ -115,7 +125,7 @@ public class CarRentalServiceImpl implements CarRentalService {
             Assert.isTrue(startTime < endTime, ExceptionEnum.PARAM_ILLEGAL);
             Assert.isTrue(endTime > System.currentTimeMillis(), ExceptionEnum.PARAM_ILLEGAL);
             List<Order> ordersInUse = orderDAO.getInUse(null, startTime, endTime);
-            if(!CollectionUtils.isEmpty(ordersInUse)){
+            if (!CollectionUtils.isEmpty(ordersInUse)) {
                 carIdExclude = ordersInUse.stream().map(Order::getCarId).collect(Collectors.toList());
             }
         }

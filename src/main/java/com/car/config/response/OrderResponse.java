@@ -1,4 +1,4 @@
-package com.car.controller.response;
+package com.car.config.response;
 
 import com.car.entity.Car;
 import lombok.*;

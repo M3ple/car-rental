@@ -1,16 +1,17 @@
 package com.car.controller.book;
 
-import com.car.controller.request.BookCarRequest;
-import com.car.controller.request.QueryCarRequest;
-import com.car.controller.response.OrderResponse;
-import com.car.controller.response.Response;
+import com.car.config.request.BookCarRequest;
+import com.car.config.request.QueryCarRequest;
+import com.car.config.response.OrderResponse;
+import com.car.config.response.Response;
 import com.car.entity.Car;
 import com.car.entity.Order;
 import com.car.entity.enums.ExceptionEnum;
+import com.car.entity.exception.BaseException;
 import com.car.service.CarRentalService;
 import com.car.utils.Assert;
 import com.car.utils.DateUtil;
-import org.springframework.stereotype.Controller;
+import com.car.utils.UserUtil;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
  * @author Gandalf
  * @since 2022-06-11 01:37
  */
-@Controller
+@RestController
 @RequestMapping("/car-rental")
 public class CarRentalController {
 
@@ -35,21 +36,26 @@ public class CarRentalController {
     private CarRentalService carRentalService;
 
     @GetMapping("/cars")
-    @ResponseBody
     public Response<List<Car>> listCars(QueryCarRequest request) {
         Assert.notNull(request.getType(), ExceptionEnum.PARAM_ILLEGAL);
         Assert.notBlank(request.getStartTime(), ExceptionEnum.PARAM_ILLEGAL);
         Assert.notBlank(request.getEndTime(), ExceptionEnum.PARAM_ILLEGAL);
+        Long startTime = null;
+        Long endTime = null;
+        try {
+            startTime = DateUtil.convertTimeToLong(request.getStartTime());
+            endTime = DateUtil.convertTimeToLong(request.getEndTime());
+        } catch (Exception e) {
+            throw new BaseException(ExceptionEnum.PARAM_ILLEGAL);
+        }
         List<Car> cars = carRentalService.listCars(null, request.getType(),
-                DateUtil.convertTimeToLong(request.getStartTime()),
-                DateUtil.convertTimeToLong(request.getEndTime()));
+                startTime, endTime);
         return Response.success(cars);
     }
 
     @GetMapping("/user/orders")
-    @ResponseBody
-    public Response<List<OrderResponse>> listOrders(String uid) {
-        List<Order> orders = carRentalService.listOrders(uid);
+    public Response<List<OrderResponse>> listOrders() {
+        List<Order> orders = carRentalService.listOrders(UserUtil.getUid());
         Map<Long, Car> carMap = new HashMap<>();
         if (!CollectionUtils.isEmpty(orders)) {
             List<Long> carIds = orders.stream().map(Order::getCarId).collect(Collectors.toList());
@@ -71,22 +77,18 @@ public class CarRentalController {
     }
 
     @PostMapping("/cars/{car_id}/book")
-    @ResponseBody
     public Response<Boolean> bookCar(@RequestBody BookCarRequest request, @PathVariable("car_id") String carId) {
-        Assert.notNull(request.getCarType(), ExceptionEnum.PARAM_ILLEGAL);
         Assert.notBlank(carId, ExceptionEnum.PARAM_ILLEGAL);
-        Assert.notNull(request.getGmtStart(), ExceptionEnum.PARAM_ILLEGAL);
-        Assert.notNull(request.getGmtEnd(), ExceptionEnum.PARAM_ILLEGAL);
+        Assert.notBlank(request.getGmtStart(), ExceptionEnum.PARAM_ILLEGAL);
+        Assert.notBlank(request.getGmtEnd(), ExceptionEnum.PARAM_ILLEGAL);
         carRentalService.bookCar(request, Long.valueOf(carId));
         return Response.success(true);
     }
 
     @PostMapping("/orders/{order_id}/finish")
-    @ResponseBody
-    public Response<Boolean> finishOrder(String uid, @PathVariable("order_id") String orderId) {
-        Assert.notBlank(uid, ExceptionEnum.PARAM_ILLEGAL);
+    public Response<Boolean> finishOrder(@PathVariable("order_id") String orderId) {
         Assert.notBlank(orderId, ExceptionEnum.PARAM_ILLEGAL);
-        carRentalService.finishOrder(Long.valueOf(orderId), uid);
+        carRentalService.finishOrder(Long.valueOf(orderId), UserUtil.getUid());
         return Response.success(true);
     }
 

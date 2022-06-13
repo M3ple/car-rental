@@ -6,6 +6,7 @@ import com.car.dao.mapper.CarMapper;
 import com.car.dao.mapper.OrderMapper;
 import com.car.entity.Car;
 import com.car.entity.enums.CarTypeEnum;
+import com.car.utils.MailUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,10 +21,17 @@ class CarRentalApplicationTests {
     private CarMapper carMapper;
     @Resource
     private OrderMapper orderMapper;
+    @Resource
+    private MailUtil mailUtil;
 
     @Test
     void orderTest() {
         orderMapper.queryInUse(1L, 123L, 123L);
+    }
+
+    @Test
+    void mail() {
+        mailUtil.sendSimpleMail("maple-cjx@yopmail.net", "test", "test");
     }
 
     @Test
@@ -39,5 +47,6 @@ class CarRentalApplicationTests {
         List<Car> cars = carMapper.selectList(new QueryWrapper<>());
         System.out.println(JSONObject.toJSONString(cars));
     }
+
 
 }

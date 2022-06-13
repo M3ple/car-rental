@@ -1,4 +1,4 @@
-package com.car.controller.request;
+package com.car.config.request;
 
 import lombok.Getter;
 import lombok.Setter;

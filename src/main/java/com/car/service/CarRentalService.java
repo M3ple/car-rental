@@ -1,6 +1,6 @@
 package com.car.service;
 
-import com.car.controller.request.BookCarRequest;
+import com.car.config.request.BookCarRequest;
 import com.car.entity.Car;
 import com.car.entity.Order;
 

@@ -11,7 +11,7 @@ CREATE TABLE `car` (
 drop table if exists car_order;
 CREATE TABLE `car_order` (
   `id` bigint(64) unsigned NOT NULL AUTO_INCREMENT,
-  `uid` varchar(20) not null,
+  `uid` varchar(50) not null,
   `car_id` bigint(64) unsigned not null,
   `order_status` tinyint(1) unsigned not null DEFAULT 1,
   `gmt_start` bigint(20) unsigned not null DEFAULT 0,

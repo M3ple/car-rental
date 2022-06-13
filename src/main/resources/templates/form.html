@@ -19,7 +19,6 @@
 </head>
 
 <body>
-<input id='uid' value="maple" style="display: none">
 <div class="navbar navbar-fixed-top">
     <div class="navbar-inner">
         <div class="container-fluid">
@@ -37,7 +36,7 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li>
-                                <a tabindex="-1" href="login">log out</a>
+                                <a tabindex="-1" onclick="logOut(this)">log out</a>
                             </li>
                         </ul>
                     </li>
@@ -157,42 +156,43 @@
         formSearch();
     });
 
+    function logOut(e) {
+        $.ajax({
+            type: "POST",
+            url: '/logout',
+            data: {},
+            success: function (data) {
+                if (data != null && !data.success) {
+                    alert(data.errorInfo);
+                }
+                this.href = "/login";
+            }
+        });
+    }
+
     function finishOrder(obj) {
         $.ajax({
             type: "POST",
             url: '/car-rental/orders/' + obj.getAttribute('value') + '/finish',
-            data: {
-                'uid': $('#uid').val()
-            },
+            data: {},
             success: function (data) {
-                if (!data.success) {
-                    var content = '   <tr>\n' +
-                        '       <td>-</td>\n' +
-                        '       <td>-</td>\n' +
-                        '       <td>-</td>\n' +
-                        '       <td>-</td>\n' +
-                        '       <td>-</td>\n' +
-                        '       <td>-</td>\n' +
-                        '   </tr>\n';
-                    $('#tbl-body').html(content);
+                if (data != null && !data.success) {
                     alert(data.errorInfo);
                 } else {
                     alert("success!");
-                    formSearch();
                 }
+                formSearch();
             }
         })
     }
     function formSearch() {
-        var formData = {
-            'uid': $('#uid').val()
-        };
+        var formData = {};
         $.ajax({
             type: "GET",
             url: '/car-rental/user/orders',
             data: formData,
             success: function (data) {
-                if (!data.success) {
+                if (data != null && !data.success) {
                     var content = '   <tr>\n' +
                         '       <td>-</td>\n' +
                         '       <td>-</td>\n' +

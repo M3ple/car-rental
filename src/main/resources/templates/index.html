@@ -34,7 +34,7 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li>
-                                <a tabindex="-1" href="login">log out</a>
+                                <a tabindex="-1" onclick="logOut(this)">log out</a>
                             </li>
                         </ul>
                     </li>
@@ -70,12 +70,11 @@
                 <!-- block -->
                 <div class="span6">
                     <div class="navbar navbar-inner block-header">
-                        <div class="muted pull-left">Welcome</div>
+                        <div class="muted pull-left">Search</div>
                     </div>
                     <div class="block-content collapse in">
                         <div class="span12">
                             <div class="form-horizontal">
-                                <legend>Search</legend>
                                 <div class="control-group">
                                     <label class="control-label" for="selectError">Car Brand</label>
                                     <div class="controls">
@@ -183,6 +182,42 @@
         });
     });
 
+    function bookCar(obj) {
+        var formData = {
+            'gmtStart': $('#date01').val() + " 00:00:00",
+            'gmtEnd': $('#date02').val() + " 23:59:59"
+        };
+        $.ajax({
+            type: "POST",
+            url: '/car-rental/cars/' + obj.getAttribute('value') + '/book',
+            data: JSON.stringify(formData),
+            contentType : 'application/json',
+            dataType : 'json',
+            success: function (data) {
+                if (data != null && !data.success) {
+                    alert(data.errorInfo);
+                } else {
+                    alert("success!");
+                    formSearch();
+                }
+            }
+        })
+    }
+
+    function logOut(e) {
+        $.ajax({
+            type: "POST",
+            url: '/logout',
+            data: {},
+            success: function (data) {
+                if (data != null && !data.success) {
+                    alert(data.errorInfo);
+                }
+                window.location.href = "/login";
+            }
+        });
+    }
+
     function formSearch() {
         var formData = {
             'type': $('#selectError').val(),
@@ -194,7 +229,7 @@
             url: '/car-rental/cars',
             data: formData,
             success: function (data) {
-                if (!data.success) {
+                if (data != null && !data.success) {
                     var content = '   <tr>\n' +
                         '       <td>1</td>\n' +
                         '       <td>no car available</td>\n' +
@@ -216,7 +251,7 @@
                             content += '   <tr>\n' +
                                 '       <td>' + (i + 1) + '</td>\n' +
                                 '       <td>' + (cars[i].type == 1 ? 'TOYOTA CAMRY' : 'BMW 650') + '</td>\n' +
-                                '       <td><a>book</a></td>\n' +
+                                '       <td><a value="' + cars[i].id + '" onclick="bookCar(this)">book</a></td>\n' +
                                 '   </tr>\n';
                         }
                     }

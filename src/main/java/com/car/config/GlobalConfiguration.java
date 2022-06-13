@@ -1,9 +1,11 @@
 package com.car.config;
 
+import com.car.entity.User;
 import com.car.utils.IdWorker;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -24,5 +26,15 @@ public class GlobalConfiguration {
     @Bean("carRentalScheduler")
     public ScheduledExecutorService executorService() {
         return Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 2 + 1);
+    }
+
+    @Bean("userRegistry")
+    public ConcurrentHashMap<String, User> userRegistry( ) {
+        return new ConcurrentHashMap<>();
+    }
+
+    @Bean("logStatus")
+    public ConcurrentHashMap<String, Boolean> logStatus( ) {
+        return new ConcurrentHashMap<>();
     }
 }

@@ -8,10 +8,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * @功能描述:Freemarker配置
- * @使用对象:借报系统
- * @创建日期: 2019/10/8 10:32
- * @创建人:陈俊旋
+ * freemarker configuration
+ *
+ * @author Gandalf
+ * @since 2022/6/13
  */
 @Configuration
 public class FreemarkerConfiguration {

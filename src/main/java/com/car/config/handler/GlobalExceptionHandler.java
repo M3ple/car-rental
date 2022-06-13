@@ -1,12 +1,14 @@
-package com.car.controller.handler;
+package com.car.config.handler;
 
-import com.car.controller.response.Response;
+import com.car.config.response.Response;
 import com.car.entity.enums.ExceptionEnum;
 import com.car.entity.exception.BaseException;
+import com.car.entity.exception.LoginException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
  * exception handler
@@ -23,6 +25,12 @@ public class GlobalExceptionHandler {
     public Response<Boolean> handlerException(BaseException e) {
         log.error(e.getMessage(), e);
         return Response.fail(e.getExceptionEnum());
+    }
+
+    @ExceptionHandler(value = LoginException.class)
+    public ModelAndView handlerException(LoginException e) {
+        log.error(e.getMessage(), e);
+        return new ModelAndView("login");
     }
 
     @ExceptionHandler(value = Exception.class)

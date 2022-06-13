@@ -1,4 +1,4 @@
-package com.car.controller.request;
+package com.car.config.request;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -19,22 +19,12 @@ public class BookCarRequest implements Serializable {
     private static final long serialVersionUID = 539651727993213717L;
 
     /**
-     * car type
-     */
-    private Integer carType;
-
-    /**
-     * user id
-     */
-    private String uid;
-
-    /**
      * rent start time
      */
-    private Long gmtStart;
+    private String gmtStart;
 
     /**
      * rent end time
      */
-    private Long gmtEnd;
+    private String gmtEnd;
 }
